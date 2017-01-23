@@ -137,18 +137,19 @@ caption = _caption;
         } else if (_photoURL) {
             // Load async from web (using SDWebImageManager)
             SDWebImageManager *manager = [SDWebImageManager sharedManager];
-            [manager downloadImageWithURL:_photoURL options:SDWebImageRetryFailed|SDWebImageHandleCookies progress:^(NSInteger receivedSize, NSInteger expectedSize) {
-                CGFloat progress = ((CGFloat)receivedSize)/((CGFloat)expectedSize);
-                if (self.progressUpdateBlock) {
-                    self.progressUpdateBlock(progress);
-                }
-            } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-                if (image) {
-                    self.underlyingImage = image;
-                    [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
-                }
-            }];
-
+            [manager.imageDownloader downloadImageWithURL:_photoURL
+                                                  options:SDWebImageRetryFailed|SDWebImageHandleCookies
+                                                 progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
+                                                     CGFloat progress = ((CGFloat)receivedSize)/((CGFloat)expectedSize);
+                                                     if (self.progressUpdateBlock) {
+                                                         self.progressUpdateBlock(progress);
+                                                     }
+                                                 } completed:^(UIImage * _Nullable image, NSData * _Nullable data, NSError * _Nullable error, BOOL finished) {
+                                                     if (image) {
+                                                         self.underlyingImage = image;
+                                                         [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
+                                                     }
+                                                 }];
         } else {
             // Failed - no source
             self.underlyingImage = nil;
